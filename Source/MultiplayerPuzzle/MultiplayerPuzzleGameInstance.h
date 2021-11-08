@@ -22,17 +22,24 @@ public:
 
 	void Init() override;
 
+	UFUNCTION(Exec)
+	void Host() override;
+
+	UFUNCTION(Exec)
+	void Join(const FString& IpAddress) override;
+
 	UFUNCTION(BlueprintCallable)
-	void LoadMenu();
+	void LoadMainMenu() override;
 
-	UFUNCTION(Exec)
-	void Host();
+	UFUNCTION(BlueprintCallable)
+	void LoadPauseMenu() override;
 
-	UFUNCTION(Exec)
-	void Join(const FString& IpAddress);
+	void ReturnToMainMenu() override;
 
 private:
-	TSubclassOf<class UMainMenu> MenuClass;
+	TSubclassOf<class UMainMenu> MainMenuClass;
 
-	class UMainMenu* Menu;
+	TSubclassOf<class UPauseMenu> PauseMenuClass;
+
+	class UBaseMenu* Menu;
 };

@@ -6,36 +6,26 @@
 #include "UObject/ConstructorHelpers.h"
 
 #include "MenuSystem/MainMenu.h"
+#include "MenuSystem/PauseMenu.h"
 
 UMultiplayerPuzzleGameInstance::UMultiplayerPuzzleGameInstance(const FObjectInitializer& ObjectInitializer)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Constructor called"));
-	ConstructorHelpers::FClassFinder<UMainMenu> MainMenuBPClass(TEXT("/Game/MultiplayerPuzzle/UI/MainMenu"));
+
+	ConstructorHelpers::FClassFinder<UMainMenu> MainMenuBPClass(TEXT("/Game/MultiplayerPuzzle/UI/WBP_MainMenu"));
 	if (!ensure(MainMenuBPClass.Class != nullptr)) return;
 
-	MenuClass = MainMenuBPClass.Class;
+	ConstructorHelpers::FClassFinder<UPauseMenu> PauseMenuBPClass(TEXT("/Game/MultiplayerPuzzle/UI/WBP_PauseMenu"));
+	if (!ensure(PauseMenuBPClass.Class != nullptr)) return;
+
+	MainMenuClass = MainMenuBPClass.Class;
+	PauseMenuClass = PauseMenuBPClass.Class;
 }
 
 void UMultiplayerPuzzleGameInstance::Init()
 {
 	Super::Init();
 
-	if (ensure(MenuClass != nullptr))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Found class %s"), *(MenuClass->GetName()));
-		return;
-	}
-}
-
-void UMultiplayerPuzzleGameInstance::LoadMenu()
-{
-	if (!ensure(MenuClass != nullptr)) return;
-
-	Menu = CreateWidget<UMainMenu>(this, MenuClass);
-	if (!ensure(Menu != nullptr)) return;
-
-	Menu->Setup();
-	Menu->SetMenuInterface(this);
 }
 
 void UMultiplayerPuzzleGameInstance::Host()
@@ -61,4 +51,34 @@ void UMultiplayerPuzzleGameInstance::Join(const FString& IpAddress)
 	APlayerController* PlayerController = GetFirstLocalPlayerController();
 	if (!ensure(PlayerController != nullptr)) return;
 	PlayerController->ClientTravel(IpAddress, ETravelType::TRAVEL_Absolute, true);
+}
+
+void UMultiplayerPuzzleGameInstance::LoadMainMenu()
+{
+	if (!ensure(MainMenuClass != nullptr)) return;
+
+	Menu = CreateWidget<UMainMenu>(this, MainMenuClass);
+	if (!ensure(Menu != nullptr)) return;
+
+	Menu->Setup();
+	Menu->SetMenuInterface(this);
+}
+
+void UMultiplayerPuzzleGameInstance::LoadPauseMenu()
+{
+	if (!ensure(MainMenuClass != nullptr)) return;
+
+	auto PauseMenu = CreateWidget<UPauseMenu>(this, PauseMenuClass);
+	if (!ensure(PauseMenu != nullptr)) return;
+
+	PauseMenu->Setup();
+	PauseMenu->SetMenuInterface(this);
+}
+
+void UMultiplayerPuzzleGameInstance::ReturnToMainMenu()
+{
+	APlayerController* PlayerController = GetFirstLocalPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+
+	PlayerController->ClientTravel("/Game/MultiplayerPuzzle/Maps/MainMenu", ETravelType::TRAVEL_Absolute);
 }

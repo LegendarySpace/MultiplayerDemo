@@ -5,15 +5,14 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 
-#include "MenuInterface.h"
-
+#include "BaseMenu.h"
 #include "MainMenu.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MULTIPLAYERPUZZLE_API UMainMenu : public UUserWidget
+class MULTIPLAYERPUZZLE_API UMainMenu : public UBaseMenu
 {
 	GENERATED_BODY()
 
@@ -21,11 +20,7 @@ protected:
 	bool Initialize() override;
 
 public:
-	void Setup();
-
-	void Teardown();
-
-	void SetMenuInterface(IMenuInterface* Interface);
+	void CloseMenu_Implementation() override;
 
 	UFUNCTION()
 	void OpenMainMenu();
@@ -43,9 +38,6 @@ public:
 	void AttemptJoin();
 
 private:
-	UPROPERTY(meta = (BindWidget))
-	class UWidgetSwitcher* MenuSwitcher;
-
 	UPROPERTY(meta = (BindWidget))
 	class UWidget* MainMenu;
 
@@ -78,6 +70,4 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* JoinAcceptButton;
-
-	IMenuInterface* MenuInterface;
 };

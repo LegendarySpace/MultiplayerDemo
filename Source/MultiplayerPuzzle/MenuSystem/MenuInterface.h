@@ -26,4 +26,10 @@ public:
 
 	virtual void Join(const FString& IpAddress) = 0;
 
+	virtual void LoadMainMenu() = 0;
+
+	virtual void LoadPauseMenu() = 0;
+
+	virtual void ReturnToMainMenu() = 0;
+
 };
