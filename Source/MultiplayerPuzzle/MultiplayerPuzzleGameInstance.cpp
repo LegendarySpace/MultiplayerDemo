@@ -5,29 +5,33 @@
 
 #include "UObject/ConstructorHelpers.h"
 
-#include "MenuSystem/MainMenuWidget.h"
+#include "MenuSystem/MainMenu.h"
 
 UMultiplayerPuzzleGameInstance::UMultiplayerPuzzleGameInstance(const FObjectInitializer& ObjectInitializer)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Constructor called"));
-	ConstructorHelpers::FClassFinder<UMainMenuWidget> MainMenuWidgetBPClass(TEXT("/Game/MultiplayerPuzzle/UI/MainMenu"));
-	if (!ensure(MainMenuWidgetBPClass.Class != nullptr)) return;
+	ConstructorHelpers::FClassFinder<UMainMenu> MainMenuBPClass(TEXT("/Game/MultiplayerPuzzle/UI/MainMenu"));
+	if (!ensure(MainMenuBPClass.Class != nullptr)) return;
 
-	MenuClass = MainMenuWidgetBPClass.Class;
+	MenuClass = MainMenuBPClass.Class;
 }
 
 void UMultiplayerPuzzleGameInstance::Init()
 {
 	Super::Init();
 
-	UE_LOG(LogTemp, Warning, TEXT("Found class %s"), *MenuClass->GetName());
+	if (ensure(MenuClass != nullptr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Found class %s"), *(MenuClass->GetName()));
+		return;
+	}
 }
 
 void UMultiplayerPuzzleGameInstance::LoadMenu()
 {
 	if (!ensure(MenuClass != nullptr)) return;
 
-	Menu = CreateWidget<UMainMenuWidget>(this, MenuClass);
+	Menu = CreateWidget<UMainMenu>(this, MenuClass);
 	if (!ensure(Menu != nullptr)) return;
 
 	Menu->Setup();
@@ -36,15 +40,7 @@ void UMultiplayerPuzzleGameInstance::LoadMenu()
 
 void UMultiplayerPuzzleGameInstance::Host()
 {
-	if (Menu != nullptr)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, TEXT("Teardown menu"));
-		Menu->Teardown();
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, TEXT("Menu not valid"));
-	}
+	if (Menu != nullptr) Menu->Teardown();
 
 	if (!ensure(GEngine != nullptr)) return;
 	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, TEXT("Hosting game"));
@@ -57,6 +53,8 @@ void UMultiplayerPuzzleGameInstance::Host()
 
 void UMultiplayerPuzzleGameInstance::Join(const FString& IpAddress)
 {
+	if (Menu != nullptr) Menu->Teardown();
+
 	if (!ensure(GEngine != nullptr)) return;
 	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, FString::Printf(TEXT("Joining game at %s"), *IpAddress));
 

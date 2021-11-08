@@ -10,13 +10,13 @@
 #include "MultiplayerPuzzleGameInstance.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class MULTIPLAYERPUZZLE_API UMultiplayerPuzzleGameInstance : public UGameInstance, public IMenuInterface
 {
 	GENERATED_BODY()
-	
+
 public:
 	UMultiplayerPuzzleGameInstance(const FObjectInitializer& ObjectInitializer);
 
@@ -32,7 +32,7 @@ public:
 	void Join(const FString& IpAddress);
 
 private:
-	TSubclassOf<class UMainMenuWidget> MenuClass;
+	TSubclassOf<class UMainMenu> MenuClass;
 
-	class UMainMenuWidget* Menu;
+	class UMainMenu* Menu;
 };
