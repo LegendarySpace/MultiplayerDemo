@@ -32,4 +32,6 @@ public:
 
 	virtual void ReturnToMainMenu() = 0;
 
+	virtual void SearchForSessions() = 0;
+
 };

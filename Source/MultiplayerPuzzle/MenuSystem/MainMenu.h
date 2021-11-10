@@ -16,6 +16,9 @@ class MULTIPLAYERPUZZLE_API UMainMenu : public UBaseMenu
 {
 	GENERATED_BODY()
 
+public:
+	UMainMenu(const FObjectInitializer& ObjectInitializer);
+
 protected:
 	bool Initialize() override;
 
@@ -37,6 +40,11 @@ public:
 	UFUNCTION()
 	void AttemptJoin();
 
+	UFUNCTION()
+	void SetServerList(TArray<FString> ServerNames);
+
+	void SelectIndex(uint32 Index);
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UWidget* MainMenu;
@@ -57,7 +65,7 @@ private:
 	class UEditableTextBox* HostNameInput;
 
 	UPROPERTY(meta = (BindWidget))
-	class UEditableTextBox* AddressInput;
+	class UScrollBox* SearchScrollBox;
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* HostCancelButton;
@@ -70,4 +78,11 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* JoinAcceptButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class USessionSearchResult* Header;
+
+	TSubclassOf<class UUserWidget> SearchResultClass;
+
+	TOptional<uint32> SelectedIndex;
 };

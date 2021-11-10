@@ -10,9 +10,7 @@
 bool UBaseMenu::Initialize()
 {
 	bool Success = Super::Initialize();
-	if (!Success) return false;
-
-	if (!ensure(CloseButton != nullptr)) return false;
+	if (!Success || !ensure(CloseButton != nullptr)) return false;
 	CloseButton->OnClicked.AddDynamic(this, &UBaseMenu::CloseMenu);
 
 	return true;
@@ -28,12 +26,13 @@ void UBaseMenu::Setup()
 	APlayerController* PlayerController = World->GetFirstPlayerController();
 	if (!ensure(PlayerController != nullptr)) return;
 
+	PlayerController->bShowMouseCursor = true;
+
 	FInputModeUIOnly InputModeData;
 	InputModeData.SetWidgetToFocus(this->TakeWidget());
 	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 
 	PlayerController->SetInputMode(InputModeData);
-	PlayerController->bShowMouseCursor = true;
 }
 
 void UBaseMenu::Teardown()
