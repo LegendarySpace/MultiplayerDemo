@@ -30,7 +30,7 @@ void UMultiplayerPuzzleGameInstance::Init()
 {
 	Super::Init();
 
-	OnlineSubsystem = IOnlineSubsystem::Get(TEXT("NULL"));
+	OnlineSubsystem = IOnlineSubsystem::Get(TEXT("STEAM"));
 
 	if (OnlineSubsystem != nullptr)
 	{
@@ -41,6 +41,7 @@ void UMultiplayerPuzzleGameInstance::Init()
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UMultiplayerPuzzleGameInstance::SessionCreated);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UMultiplayerPuzzleGameInstance::SessionDestroyed);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UMultiplayerPuzzleGameInstance::SessionsFound);
+			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UMultiplayerPuzzleGameInstance::SessionJoined);
 		}
 	}
 	else
@@ -66,16 +67,15 @@ void UMultiplayerPuzzleGameInstance::Host()
 	}
 }
 
-void UMultiplayerPuzzleGameInstance::Join(const FString& IpAddress)
+void UMultiplayerPuzzleGameInstance::Join(const uint32 Index)
 {
+	if (!SessionInterface.IsValid() || !SessionSearch.IsValid()) return;
 	if (Menu != nullptr) Menu->Teardown();
 
 	if (!ensure(GEngine != nullptr)) return;
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, FString::Printf(TEXT("Joining game at %s"), *IpAddress));
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, FString::Printf(TEXT("Joining game at %d"), Index));
 
-	APlayerController* PlayerController = GetFirstLocalPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-	PlayerController->ClientTravel(IpAddress, ETravelType::TRAVEL_Absolute, true);
+	SessionInterface->JoinSession(0, SESSION_NAME, SessionSearch->SearchResults[Index]);
 }
 
 void UMultiplayerPuzzleGameInstance::LoadMainMenu()
@@ -110,16 +110,14 @@ void UMultiplayerPuzzleGameInstance::ReturnToMainMenu()
 
 void UMultiplayerPuzzleGameInstance::SearchForSessions()
 {
-	if (SessionInterface.IsValid())
+	UE_LOG(LogTemp, Warning, TEXT("Starting Search for Sessions"));
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	if (SessionSearch.IsValid() && SessionInterface.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Starting Search for Sessions"));
-		SessionSearch = MakeShareable(new FOnlineSessionSearch());
-		if (SessionSearch.IsValid())
-		{
-			SessionSearch->bIsLanQuery = true;
-			//SessionSearch->QuerySettings();
-			SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
-		}
+		//SessionSearch->bIsLanQuery = true;
+		SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+		SessionSearch->MaxSearchResults = 100;
+		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 	}
 }
 
@@ -151,9 +149,11 @@ void UMultiplayerPuzzleGameInstance::CreateSession()
 	if (SessionInterface.IsValid())
 	{
 		FOnlineSessionSettings SessionSettings;
-		SessionSettings.bIsLANMatch = true;
+		SessionSettings.bIsLANMatch = false;
 		SessionSettings.NumPublicConnections = 4;
 		SessionSettings.bShouldAdvertise = true;
+		SessionSettings.bUsesPresence = true;
+		SessionSettings.bUseLobbiesIfAvailable = true;
 
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
 	}
@@ -174,5 +174,17 @@ void UMultiplayerPuzzleGameInstance::SessionsFound(bool Success)
 
 		Menu->SetServerList(Names);
 	}
+}
+
+void UMultiplayerPuzzleGameInstance::SessionJoined(FName Name, EOnJoinSessionCompleteResult::Type ResultType)
+{
+	if (!ensure(SessionInterface.IsValid())) return;
+	FString Connect;
+	SessionInterface->GetResolvedConnectString(SESSION_NAME, Connect);
+
+	APlayerController* PlayerController = GetFirstLocalPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+
+	PlayerController->ClientTravel(Connect, ETravelType::TRAVEL_Absolute, true);
 }
 

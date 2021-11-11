@@ -28,7 +28,7 @@ public:
 	void Host() override;
 
 	UFUNCTION(Exec)
-	void Join(const FString& IpAddress) override;
+	void Join(const uint32 Index) override;
 
 	UFUNCTION(BlueprintCallable)
 	void LoadMainMenu() override;
@@ -45,6 +45,7 @@ private:
 	void SessionCreated(FName Name, bool Success);
 	void SessionDestroyed(FName Name, bool Success);
 	void SessionsFound(bool Success);
+	void SessionJoined(FName Name, EOnJoinSessionCompleteResult::Type ResultType);
 
 private:
 	TSubclassOf<class UMainMenu> MainMenuClass;

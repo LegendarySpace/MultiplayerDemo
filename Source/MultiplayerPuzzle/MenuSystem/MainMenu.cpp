@@ -85,13 +85,12 @@ void UMainMenu::AttemptJoin()
 	if (SelectedIndex.IsSet())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Selected Index: %d"), SelectedIndex.GetValue());
+		MenuInterface->Join(SelectedIndex.GetValue());
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Selected Index not set"));
 	}
-	//FString Address = AddressInput->GetText().ToString();
-	//MenuInterface->Join(Address);
 }
 
 void UMainMenu::SetServerList(TArray<FString> ServerNames)
@@ -110,7 +109,7 @@ void UMainMenu::SetServerList(TArray<FString> ServerNames)
 		if (!ensure(Row != nullptr)) return;
 
 		Row->SetServerData(ServerName, TEXT(""), TEXT(""));
-		Row->Setup(this, SearchScrollBox->GetChildrenCount());
+		Row->Setup(this, i);
 		++i;
 		
 		SearchScrollBox->AddChild(Row);

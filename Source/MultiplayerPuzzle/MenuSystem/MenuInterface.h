@@ -24,7 +24,7 @@ class MULTIPLAYERPUZZLE_API IMenuInterface
 public:
 	virtual void Host() = 0;
 
-	virtual void Join(const FString& IpAddress) = 0;
+	virtual void Join(const uint32 Index) = 0;
 
 	virtual void LoadMainMenu() = 0;
 
