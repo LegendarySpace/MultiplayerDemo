@@ -11,6 +11,7 @@
 #include "MenuSystem/PauseMenu.h"
 
 const FName SESSION_NAME = TEXT("MPGameSession");
+const FName SERVER_DATA_NAME = TEXT("ServerName");
 
 UMultiplayerPuzzleGameInstance::UMultiplayerPuzzleGameInstance(const FObjectInitializer& ObjectInitializer)
 {
@@ -31,6 +32,7 @@ void UMultiplayerPuzzleGameInstance::Init()
 	Super::Init();
 
 	OnlineSubsystem = IOnlineSubsystem::Get(TEXT("STEAM"));
+	if (OnlineSubsystem == nullptr)	OnlineSubsystem = IOnlineSubsystem::Get(TEXT("NULL"));
 
 	if (OnlineSubsystem != nullptr)
 	{
@@ -133,7 +135,7 @@ void UMultiplayerPuzzleGameInstance::SessionCreated(FName Name, bool Success)
 		UWorld* World = GetWorld();
 		if (!ensure(World != nullptr)) return;
 
-		World->ServerTravel("/Game/MultiplayerPuzzle/Maps/FirstLevel?listen");
+		World->ServerTravel("/Game/MultiplayerPuzzle/Maps/Lobby?listen");
 	}
 }
 
@@ -149,11 +151,13 @@ void UMultiplayerPuzzleGameInstance::CreateSession()
 	if (SessionInterface.IsValid())
 	{
 		FOnlineSessionSettings SessionSettings;
-		SessionSettings.bIsLANMatch = false;
+		if (OnlineSubsystem->GetSubsystemName().ToString() == "NULL") SessionSettings.bIsLANMatch = true;
+		else SessionSettings.bIsLANMatch = false;
 		SessionSettings.NumPublicConnections = 4;
 		SessionSettings.bShouldAdvertise = true;
 		SessionSettings.bUsesPresence = true;
 		SessionSettings.bUseLobbiesIfAvailable = true;
+		SessionSettings.Set(SERVER_DATA_NAME, DesiredServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
 	}
@@ -165,14 +169,22 @@ void UMultiplayerPuzzleGameInstance::SessionsFound(bool Success)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Finished Searching for Sessions"));
 
-		TArray<FString> Names;
+		TArray<FServerData> ServerData;
 		for (auto Result : SessionSearch->SearchResults)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Found Session: %s"), *Result.Session.GetSessionIdStr());
-			Names.Add(Result.Session.GetSessionIdStr());
+			FServerData Data = FServerData();
+			Data.Name = Result.Session.GetSessionIdStr();
+			Data.CurrentPlayers = Result.Session.SessionSettings.NumPublicConnections - Result.Session.NumOpenPublicConnections;
+			Data.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections;
+			Data.HostUsername = Result.Session.OwningUserName;
+			FString str;
+			if (Result.Session.SessionSettings.Get(SERVER_DATA_NAME, str)) Data.Name = str;
+			else Data.Name = TEXT("Could not find Data");
+			ServerData.Add(Data);
 		}
 
-		Menu->SetServerList(Names);
+		Menu->SetServerList(ServerData);
 	}
 }
 

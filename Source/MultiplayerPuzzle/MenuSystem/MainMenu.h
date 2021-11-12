@@ -8,6 +8,19 @@
 #include "BaseMenu.h"
 #include "MainMenu.generated.h"
 
+
+USTRUCT()
+struct FServerData
+{
+	GENERATED_BODY()
+
+
+	FString Name;
+	FString HostUsername;
+	uint16 CurrentPlayers;
+	uint16 MaxPlayers;
+};
+
 /**
  * 
  */
@@ -41,9 +54,11 @@ public:
 	void AttemptJoin();
 
 	UFUNCTION()
-	void SetServerList(TArray<FString> ServerNames);
+	void SetServerList(TArray<FServerData> ServerDataList);
 
 	void SelectIndex(uint32 Index);
+
+	void UpdateChildren();
 
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -79,10 +94,10 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* JoinAcceptButton;
 
-	UPROPERTY(meta = (BindWidget))
-	class USessionSearchResult* Header;
-
 	TSubclassOf<class UUserWidget> SearchResultClass;
 
 	TOptional<uint32> SelectedIndex;
+
+	class USlateWidgetStyleAsset* UnselectedStyle;
+	class USlateWidgetStyleAsset* SelectedStyle;
 };

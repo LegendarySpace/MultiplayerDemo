@@ -3,18 +3,19 @@
 
 #include "SessionSearchResult.h"
 
+#include "UObject/ConstructorHelpers.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
-
-#include "MainMenu.h"
-
+//#include "Styling/SlateWidgetStyleAsset.h"
 
 
-void USessionSearchResult::SetServerData(const FString& Name, const FString& HostPlayer, const FString& Count)
+
+
+void USessionSearchResult::SetServerData(FServerData Data)
 {
-	ServerName->SetText(FText::FromString(Name));
-	Host->SetText(FText::FromString(HostPlayer));
-	PlayerCount->SetText(FText::FromString(Count));
+	ServerName->SetText(FText::FromString(Data.Name));
+	Host->SetText(FText::FromString(Data.HostUsername));
+	PlayerCount->SetText(FText::FromString(FString::Printf(TEXT("%d / %d"), Data.CurrentPlayers, Data.MaxPlayers)));
 }
 
 void USessionSearchResult::Setup(class UMainMenu* Parent, uint32 Index)
@@ -31,5 +32,16 @@ void USessionSearchResult::Clicked()
 {
 	if (!ensure(ParentWidget != nullptr)) return;
 	ParentWidget->SelectIndex(WidgetIndex);
+}
+
+void USessionSearchResult::UpdateSelection(/*USlateWidgetStyleAsset* Style*/)
+{
+	if (bIsSelected != bPrevious)
+	{
+		//SButton::FArguments ButtonDefaults;
+		//ButtonDefaults.ButtonStyle(Style);
+		//RowButton->WidgetStyle = *ButtonDefaults._ButtonStyle;
+		bPrevious = bIsSelected;
+	}
 }
 

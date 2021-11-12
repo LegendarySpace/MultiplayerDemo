@@ -34,4 +34,9 @@ public:
 
 	virtual void SearchForSessions() = 0;
 
+	void SetDesiredServerName(FString Name);
+
+protected:
+	FString DesiredServerName;
+
 };

@@ -47,6 +47,9 @@ private:
 	void SessionsFound(bool Success);
 	void SessionJoined(FName Name, EOnJoinSessionCompleteResult::Type ResultType);
 
+public:
+	FName ServerName;
+
 private:
 	TSubclassOf<class UMainMenu> MainMenuClass;
 

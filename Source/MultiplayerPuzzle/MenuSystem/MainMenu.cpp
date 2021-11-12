@@ -8,16 +8,24 @@
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
 #include "Components/ScrollBox.h"
+#include "Styling/SlateWidgetStyleAsset.h"
 
 #include "SessionSearchResult.h"
 
 
 UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
 {
-	ConstructorHelpers::FClassFinder<UUserWidget> SessionSearchResultBPClass(TEXT("/Game/MultiplayerPuzzle/UI/WBP_SessionSearchResult"));
+	ConstructorHelpers::FClassFinder<UUserWidget> SessionSearchResultBPClass(TEXT("/Game/MultiplayerPuzzle/UI/WBP_SessionRow"));
 	if (!ensure(SessionSearchResultBPClass.Class != nullptr)) return;
 
 	SearchResultClass = SessionSearchResultBPClass.Class;
+
+	//ConstructorHelpers::FObjectFinder<USlateWidgetStyleAsset> UnselectedStyleBP(TEXT("/Game/MultiplayerPuzzle/UI/SquareButtonUnselected"));
+	//ConstructorHelpers::FObjectFinder<USlateWidgetStyleAsset> SelectedStyleBP(TEXT("/Game/MultiplayerPuzzle/UI/SquareButtonUnselected"));
+	//if (!ensure(UnselectedStyleBP.Object != nullptr) && !ensure(SelectedStyleBP.Object != nullptr)) return;
+
+	//UnselectedStyle = UnselectedStyleBP.Object;
+	//SelectedStyle = SelectedStyleBP.Object;
 }
 
 bool UMainMenu::Initialize()
@@ -74,6 +82,7 @@ void UMainMenu::OpenJoinMenu()
 void UMainMenu::AttemptHost()
 {
 	if (!ensure(MenuInterface != nullptr)) return;
+	MenuInterface->SetDesiredServerName(HostNameInput->GetText().ToString());
 	MenuInterface->Host();
 }
 
@@ -93,22 +102,21 @@ void UMainMenu::AttemptJoin()
 	}
 }
 
-void UMainMenu::SetServerList(TArray<FString> ServerNames)
+void UMainMenu::SetServerList(TArray<FServerData> ServerDataList)
 {
 	if (!ensure(SearchScrollBox != nullptr)) return;
 	SearchScrollBox->ClearChildren();
-	SearchScrollBox->AddChild(Header);
 
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr)) return;
 
 	uint32 i = 0;
-	for (const FString& ServerName : ServerNames)
+	for (const FServerData& ServerData : ServerDataList)
 	{
 		auto Row = CreateWidget<USessionSearchResult>(World, SearchResultClass);
 		if (!ensure(Row != nullptr)) return;
-
-		Row->SetServerData(ServerName, TEXT(""), TEXT(""));
+		FString str = FString::Printf(TEXT("%d / %d"), ServerData.CurrentPlayers, ServerData.MaxPlayers);
+		Row->SetServerData(ServerData);
 		Row->Setup(this, i);
 		++i;
 		
@@ -119,5 +127,23 @@ void UMainMenu::SetServerList(TArray<FString> ServerNames)
 void UMainMenu::SelectIndex(uint32 Index)
 {
 	SelectedIndex = Index;
+	UpdateChildren();
+}
+
+void UMainMenu::UpdateChildren()
+{
+	if (!ensure(SearchScrollBox != nullptr)) return;
+
+	for (int32 i = 0; i < SearchScrollBox->GetChildrenCount(); i++)
+	{
+		auto Row = Cast<USessionSearchResult>(SearchScrollBox->GetChildAt(i));
+		if (Row != nullptr)
+		{
+			bool sel = SelectedIndex.IsSet() && SelectedIndex.GetValue() == i;
+			Row->bIsSelected = sel;
+			//if (sel) Row->UpdateSelection(SelectedStyle);
+			//else Row->UpdateSelection(UnselectedStyle);
+		}
+	}
 }
 
