@@ -40,6 +40,8 @@ public:
 
 	void SearchForSessions() override;
 
+	void StartSession();
+
 private:
 	void CreateSession();
 	void SessionCreated(FName Name, bool Success);

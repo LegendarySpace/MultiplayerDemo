@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "MultiplayerPuzzleGameMode.h"
+#include "TimerManager.h"
+
+
 #include "LobbyGameMode.generated.h"
 
 /**
@@ -20,5 +23,11 @@ public:
 	void Logout(AController* Exiting) override;
 
 private:
+	UFUNCTION()
+	void LaunchGame();
+
+private:
 	uint16 PlayerCount = 0;
+
+	FTimerHandle GameLaunchHandle;
 };

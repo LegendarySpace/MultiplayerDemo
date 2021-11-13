@@ -5,12 +5,13 @@
 
 #include "UObject/ConstructorHelpers.h"
 #include "OnlineSubsystem.h"
+#include "TimerManager.h"
 
 
 #include "MenuSystem/MainMenu.h"
 #include "MenuSystem/PauseMenu.h"
 
-const FName SESSION_NAME = TEXT("MPGameSession");
+const FName SESSION_NAME = TEXT("Game");
 const FName SERVER_DATA_NAME = TEXT("ServerName");
 
 UMultiplayerPuzzleGameInstance::UMultiplayerPuzzleGameInstance(const FObjectInitializer& ObjectInitializer)
@@ -121,6 +122,11 @@ void UMultiplayerPuzzleGameInstance::SearchForSessions()
 		SessionSearch->MaxSearchResults = 100;
 		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 	}
+}
+
+void UMultiplayerPuzzleGameInstance::StartSession()
+{
+	SessionInterface->StartSession(SESSION_NAME);
 }
 
 void UMultiplayerPuzzleGameInstance::SessionCreated(FName Name, bool Success)
